@@ -28,19 +28,23 @@ end$Date <- as.Date(end$RawDateTime, format("%b %d, %Y at %H:%M%p"))
 end$DateTime <- as.POSIXct(end$RawDateTime, format="%b %d, %Y at %H:%M%p")
 end <- subset(end, select=c(2:3))
 
-# join together by date
-
-start_to_expressway <- inner_join(start, expressway, by=c("Date" = "Date"), suffix=c(".start", ".xway"))
-journeys <- inner_join(start_to_expressway, end, by=c("Date" = "Date"))
-colnames(journeys) <- c("Date", "Start", "ExpressWay", "End")
-
-
-# remove outliers (all should be between 6am and 10am)
-
-
 
 # combine into one tidy data set - match by date
 # date
 # start time
 # express way time
 # end time
+
+# join together by date
+
+start_to_expressway <- inner_join(start, expressway, by=c("Date" = "Date"), suffix=c(".start", ".xway"))
+journeys <- inner_join(start_to_expressway, end, by=c("Date" = "Date"))
+colnames(journeys) <- c("Date", "Start", "ExpressWay", "End")
+
+# remove outliers (all should be between 6am and 10am)
+journeys <- subset(journeys, am(journeys$Start) & hour(journeys$Start) > 6 & hour(journeys$Start) < 10 & hour(journeys$End) < 10 & am(journeys$End))
+
+# plot total journey time by date
+
+
+# plot total journey time by start time
