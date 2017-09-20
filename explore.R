@@ -11,12 +11,19 @@ expressway <- fread("data/august/expressway.csv", select=c(1))
 end <- fread("data/august/end.csv", select=c(1))
 
 # column names
-colnames(start) <- c("DateTime")
-colnames(expressway) <- c("DateTime")
-colnames(end) <- c("DateTime")
+colnames(start) <- c("RawDateTime")
+colnames(expressway) <- c("RawDateTime")
+colnames(end) <- c("RawDateTime")
 
 # convert date into date and time
-start$DateTime <- as.Date(start$DateTime, format("%b %d, %Y at %H:%M%p"))
+start$Date <- as.Date(start$RawDateTime, format("%b %d, %Y at %H:%M%p"))
+start$DateTime <- as.POSIXct(start$RawDateTime, format="%b %d, %Y at %H:%M%p")
+
+expressway$Date <- as.Date(expressway$RawDateTime, format("%b %d, %Y at %H:%M%p"))
+expressway$DateTime <- as.POSIXct(expressway$RawDateTime, format="%b %d, %Y at %H:%M%p")
+
+end$Date <- as.Date(end$RawDateTime, format("%b %d, %Y at %H:%M%p"))
+end$DateTime <- as.POSIXct(end$RawDateTime, format="%b %d, %Y at %H:%M%p")
 
 # remove outliers (all should be between 6am and 10am)
 
