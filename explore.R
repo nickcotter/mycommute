@@ -43,8 +43,20 @@ colnames(journeys) <- c("Date", "Start", "ExpressWay", "End")
 
 # remove outliers (all should be between 6am and 10am)
 journeys <- subset(journeys, am(journeys$Start) & hour(journeys$Start) > 6 & hour(journeys$Start) < 10 & hour(journeys$End) < 10 & am(journeys$End))
+journeys <- subset(journeys, journeys$Start < journeys$End)
+
+# add segment travel times
+journeys$StartToExpressWay <- difftime(journeys$ExpressWay, journeys$Start)
+journeys$ExpressWayToEnd <- difftime(journeys$End, journeys$ExpressWay)
+journeys$Total <- difftime(journeys$End, journeys$Start)
 
 # plot total journey time by date
 
 
 # plot total journey time by start time
+qplot(as.numeric(Start-trunc(Start, "days")), Total, data=journeys, 
+      geom=c("point", "smooth")) + xlab("Start Time") + ylab("Travel Time (minutes)")
+
+
+# plot total journey time by day of week
+#qplot(weekdays(Date), as.numeric(Total), data=journeys, geom="boxplot")
