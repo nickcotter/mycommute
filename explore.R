@@ -1,6 +1,7 @@
 library("dplyr")
 library("lubridate")
 library(data.table)
+library(ggplot2)
 
 # function to turn date string into date
 # function to turn date string into time
@@ -50,13 +51,55 @@ journeys$StartToExpressWay <- difftime(journeys$ExpressWay, journeys$Start)
 journeys$ExpressWayToEnd <- difftime(journeys$End, journeys$ExpressWay)
 journeys$Total <- difftime(journeys$End, journeys$Start)
 
+# remove journeys longer than 90 minutes (these usually involve errands on the way to work)
+journeys <- subset(journeys, journeys$Total <= 90)
+
+
+# add start time for convenience
+journeys$StartTime <- as.numeric(journeys$Start-trunc(journeys$Start, "days"))
+
+# add day of week as ordered factor
+journeys$dow <- factor(weekdays(journeys$Date), levels=c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"))
+
 # plot total journey time by date
 
 
 # plot total journey time by start time
-qplot(as.numeric(Start-trunc(Start, "days")), Total, data=journeys, 
-      geom=c("point", "smooth")) + xlab("Start Time") + ylab("Travel Time (minutes)")
+ggplot(journeys, aes(StartTime, Total)) + geom_point() + geom_smooth(method="lm")
+
+
+# fit total vs start time for different days of the week
+ggplot(journeys, aes(StartTime, Total)) + geom_point() + geom_smooth(method="lm") + facet_grid(.~dow)
 
 
 # plot total journey time by day of week
 #qplot(weekdays(Date), as.numeric(Total), data=journeys, geom="boxplot")
+
+
+
+# examples from course
+# qplot(displ, hwy, data=mpg, geom=c("point", "smooth"), facets=.~drv)
+
+#g <- ggplot(mpg,aes(displ,hwy))
+#g+geom_point()
+#g+geom_point() + geom_smooth()
+#g+geom_point() + geom_smooth(method="lm")
+#g+geom_point() + geom_smooth(method="lm") + facet_grid(.~drv)
+
+# colour by facet
+#g+geom_point(size=4, alpha=1/2, aes(color=drv))
+
+## facet grid
+#g+geom_point()+facet_grid(drv~cyl, margins = TRUE)
+
+#g+geom_point()+facet_grid(drv~cyl, margins = TRUE) + geom_smooth(method="lm", se=FALSE, size=2, color="black")
+
+#qplot(carat, price, data=diamonds, color=cut) + geom_smooth(method="lm")
+
+
+#qplot(carat, price, data=diamonds, color=cut, facets=.~cut) + geom_smooth(method="lm")
+
+# boxplot with facets
+#ggplot(diamonds, aes(carat, price)) + geom_boxplot() + facet_grid(.~cut)
+
+
