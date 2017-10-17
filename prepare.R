@@ -1,15 +1,9 @@
-<<<<<<< HEAD:prepare.R
 require(dplyr)
 require(plyr)
 require(lubridate)
 require(data.table)
 require(ggplot2)
-=======
-library(dplyr)
-library(lubridate)
-library(data.table)
-library(ggplot2)
->>>>>>> 770897df4c306da88466f7ccb89dc5832003af9a:explore.R
+
 
 august_start <- fread("data/august/start.csv", select=c(1), col.names=c("datetime"))
 august_expressway <- fread("data/august/expressway.csv", select=c(1), col.names=c("datetime"))
