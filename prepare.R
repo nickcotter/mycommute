@@ -4,20 +4,17 @@ require(lubridate)
 require(data.table)
 require(ggplot2)
 
+unzip("data/export-150817.zip", exdir="unpacked")
+unzip("data/export-171017.zip", exdir="unpacked")
+unzip("data/export-300118.zip", exdir="unpacked")
 
-august_start <- fread("data/august/start.csv", select=c(1), col.names=c("datetime"))
-august_expressway <- fread("data/august/expressway.csv", select=c(1), col.names=c("datetime"))
-august_end <- fread("data/august/end.csv", select=c(1), col.names=c("datetime"))
+readdata <- function(f) {
+  fread(f, select=c(1), col.names=c("datetime"))
+}
 
-
-october_start <- fread("data/october/start.csv", select=c(1), col.names=c("datetime"))
-october_expressway <- fread("data/october/expressway.csv", select=c(1), col.names=c("datetime"))
-october_end <- fread("data/october/end.csv", select=c(1), col.names=c("datetime"))
-
-
-start <- rbindlist(list(august_start, october_start));
-expressway <- rbindlist(list(august_expressway, october_expressway));
-end <- rbindlist(list(august_end, october_end));
+start <- rbindlist(lapply(list.files(path="unpacked", pattern="start.csv", full.names = TRUE, recursive = TRUE), readdata))
+expressway <- rbindlist(lapply(list.files(path="unpacked", pattern="expressway.csv", full.names = TRUE, recursive = TRUE), readdata))
+end <- rbindlist(lapply(list.files(path="unpacked", pattern="end", full.names = TRUE, recursive = TRUE), readdata))
 
 
 # column names
