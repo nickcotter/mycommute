@@ -7,13 +7,12 @@ output:
     keep_md: yes
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
+
 
 ## Libraries
 
-```{r libraries, message=F, warning=F}
+
+```r
 require(dplyr)
 require(lubridate)
 require(data.table)
@@ -27,17 +26,17 @@ require(ggplot2)
 
 ## Load The Data
 
-```{r loadthedata}
+
+```r
 unzip("data/export-150817.zip", exdir="unpacked")
 unzip("data/export-171017.zip", exdir="unpacked")
 unzip("data/export-300118.zip", exdir="unpacked")
-
 ```
 
 ## Preprocess The Data
 
-```{r prerocessthedata}
 
+```r
 # function to extract date & time from raw data
 readdata <- function(f) {
   fread(f, select=c(1), col.names=c("datetime"))
@@ -99,19 +98,28 @@ journeys$dow <- factor(weekdays(journeys$Date), levels=c("Monday", "Tuesday", "W
 
 # Total Journey Time By Start Time
 
-```{r totalbystart}
+
+```r
 ggplot(journeys, aes(StartTime, Total)) + geom_point() + geom_smooth(method="lm") + scale_y_continuous(expand = c(0,0))
 ```
+
+![](my-commute_files/figure-html/totalbystart-1.png)<!-- -->
 
 
 # Total Journey Time By Start Time For Each Day Of The Week
 
-```{r totalbystartdow}
+
+```r
 ggplot(journeys, aes(StartTime, Total)) + geom_point() + geom_smooth(method="lm") + facet_grid(.~dow) + scale_y_continuous(expand = c(0,0))
 ```
 
+![](my-commute_files/figure-html/totalbystartdow-1.png)<!-- -->
+
 # Express Way To EndTtime Versus Start Time
 
-```{r expresswaybystart}
+
+```r
 ggplot(journeys, aes(StartTime, ExpressWayToEnd)) + geom_point() + geom_smooth(method="lm") + scale_y_continuous(expand = c(0,0))
 ```
+
+![](my-commute_files/figure-html/expresswaybystart-1.png)<!-- -->
