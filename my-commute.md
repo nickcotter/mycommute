@@ -17,6 +17,7 @@ require(dplyr)
 require(lubridate)
 require(data.table)
 require(ggplot2)
+require(stringr)
 ```
 
 ## TODO: summary
@@ -31,6 +32,7 @@ require(ggplot2)
 unzip("data/export-150817.zip", exdir="unpacked")
 unzip("data/export-171017.zip", exdir="unpacked")
 unzip("data/export-300118.zip", exdir="unpacked")
+unzip("data/export-130718.zip", exdir="unpacked")
 ```
 
 ## Preprocess The Data
@@ -46,7 +48,15 @@ readdata <- function(f) {
 start <- rbindlist(lapply(list.files(path="unpacked", pattern="start.csv", full.names = TRUE, recursive = TRUE), readdata))
 expressway <- rbindlist(lapply(list.files(path="unpacked", pattern="expressway.csv", full.names = TRUE, recursive = TRUE), readdata))
 end <- rbindlist(lapply(list.files(path="unpacked", pattern="end", full.names = TRUE, recursive = TRUE), readdata))
+```
 
+```
+## Warning in fread(f, select = c(1), col.names = c("datetime")): Stopped
+## early on line 2. Expected 1 fields but found 1. Consider fill=TRUE and
+## comment.char=. First discarded non-empty line: <<>>
+```
+
+```r
 # column names
 colnames(start) <- c("RawDateTime")
 colnames(expressway) <- c("RawDateTime")
@@ -74,7 +84,7 @@ colnames(journeys) <- c("Date", "Start", "ExpressWay", "End")
 
 # TODO explain outliers
 # remove outliers (all should be between 6am and 10am) and bad readings
-journeys <- subset(journeys, am(journeys$Start) & hour(journeys$Start) > 6 & hour(journeys$Start) < 10 & hour(journeys$End) < 10 & am(journeys$End))
+journeys <- subset(journeys, am(journeys$Start) & hour(journeys$Start) > 6 & hour(journeys$Start) < 9 & hour(journeys$End) < 10 & am(journeys$End))
 journeys <- subset(journeys, journeys$Start < journeys$End)
 journeys <- subset(journeys, journeys$ExpressWay < journeys$End)
 journeys <- subset(journeys, journeys$ExpressWay > journeys$Start)
@@ -92,7 +102,39 @@ journeys$StartTime <- as.numeric(journeys$Start-trunc(journeys$Start, "days"))
 
 # add day of week as ordered factor
 journeys$dow <- factor(weekdays(journeys$Date), levels=c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"))
+
+head(journeys)
 ```
+
+```
+##         Date               Start          ExpressWay                 End
+## 1 2016-12-01 2016-12-01 08:04:00 2016-12-01 08:44:00 2016-12-01 09:01:00
+## 2 2016-12-02 2016-12-02 07:51:00 2016-12-02 08:40:00 2016-12-02 08:43:00
+## 3 2016-12-05 2016-12-05 07:45:00 2016-12-05 08:33:00 2016-12-05 08:42:00
+## 4 2016-12-06 2016-12-06 07:45:00 2016-12-06 08:23:00 2016-12-06 08:42:00
+## 5 2016-12-07 2016-12-07 07:53:00 2016-12-07 08:31:00 2016-12-07 08:44:00
+## 6 2016-12-08 2016-12-08 08:06:00 2016-12-08 08:52:00 2016-12-08 09:03:00
+##   StartToExpressWay ExpressWayToEnd   Total StartTime       dow
+## 1           40 mins         17 mins 57 mins  8.066667  Thursday
+## 2           49 mins          3 mins 52 mins  7.850000    Friday
+## 3           48 mins          9 mins 57 mins  7.750000    Monday
+## 4           38 mins         19 mins 57 mins  7.750000   Tuesday
+## 5           38 mins         13 mins 51 mins  7.883333 Wednesday
+## 6           46 mins         11 mins 57 mins  8.100000  Thursday
+```
+
+
+```r
+format_time <- function(time) {
+  hours <- floor(time)
+  minutes <- (time - floor(time)) * 60
+  minutes <- floor(minutes)
+  minutes <- str_pad(minutes, 2, side="left", pad="0")
+  formatted <- paste(hours,minutes,sep=":")
+  return(formatted)
+}
+```
+
 
 ## Plots
 
@@ -100,7 +142,7 @@ journeys$dow <- factor(weekdays(journeys$Date), levels=c("Monday", "Tuesday", "W
 
 
 ```r
-ggplot(journeys, aes(StartTime, Total)) + geom_point() + geom_smooth(method="lm") + scale_y_continuous(expand = c(0,0))
+ggplot(journeys, aes(StartTime, Total)) + geom_point() + geom_smooth(method="lm") + scale_y_continuous(expand = c(0,0)) + scale_x_continuous(labels=format_time) + ylab("Total Duration (minutes)") + xlab("Start Time")
 ```
 
 ![](my-commute_files/figure-html/totalbystart-1.png)<!-- -->
@@ -110,7 +152,7 @@ ggplot(journeys, aes(StartTime, Total)) + geom_point() + geom_smooth(method="lm"
 
 
 ```r
-ggplot(journeys, aes(StartTime, Total)) + geom_point() + geom_smooth(method="lm") + facet_grid(.~dow) + scale_y_continuous(expand = c(0,0))
+ggplot(journeys, aes(StartTime, Total)) + geom_point() + geom_smooth(method="lm") + facet_grid(.~dow) + scale_y_continuous(expand = c(0,0)) + scale_x_continuous(labels=format_time) + ylab("Total Duration (minutes)") + xlab("Start Time")
 ```
 
 ![](my-commute_files/figure-html/totalbystartdow-1.png)<!-- -->
@@ -119,7 +161,7 @@ ggplot(journeys, aes(StartTime, Total)) + geom_point() + geom_smooth(method="lm"
 
 
 ```r
-ggplot(journeys, aes(StartTime, ExpressWayToEnd)) + geom_point() + geom_smooth(method="lm") + scale_y_continuous(expand = c(0,0))
+ggplot(journeys, aes(StartTime, ExpressWayToEnd)) + geom_point() + geom_smooth(method="lm") + scale_y_continuous(expand = c(0,0)) + scale_x_continuous(labels=format_time) + ylab("Duration (minutes)") + xlab("Start Time")
 ```
 
 ![](my-commute_files/figure-html/expresswaybystart-1.png)<!-- -->

@@ -18,6 +18,7 @@ require(dplyr)
 require(lubridate)
 require(data.table)
 require(ggplot2)
+require(stringr)
 ```
 
 ## TODO: summary
@@ -31,7 +32,7 @@ require(ggplot2)
 unzip("data/export-150817.zip", exdir="unpacked")
 unzip("data/export-171017.zip", exdir="unpacked")
 unzip("data/export-300118.zip", exdir="unpacked")
-
+unzip("data/export-130718.zip", exdir="unpacked")
 ```
 
 ## Preprocess The Data
@@ -75,7 +76,7 @@ colnames(journeys) <- c("Date", "Start", "ExpressWay", "End")
 
 # TODO explain outliers
 # remove outliers (all should be between 6am and 10am) and bad readings
-journeys <- subset(journeys, am(journeys$Start) & hour(journeys$Start) > 6 & hour(journeys$Start) < 10 & hour(journeys$End) < 10 & am(journeys$End))
+journeys <- subset(journeys, am(journeys$Start) & hour(journeys$Start) > 6 & hour(journeys$Start) < 9 & hour(journeys$End) < 10 & am(journeys$End))
 journeys <- subset(journeys, journeys$Start < journeys$End)
 journeys <- subset(journeys, journeys$ExpressWay < journeys$End)
 journeys <- subset(journeys, journeys$ExpressWay > journeys$Start)
@@ -93,25 +94,41 @@ journeys$StartTime <- as.numeric(journeys$Start-trunc(journeys$Start, "days"))
 
 # add day of week as ordered factor
 journeys$dow <- factor(weekdays(journeys$Date), levels=c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"))
+
+head(journeys)
+
 ```
+
+```{r time-formatting}
+format_time <- function(time) {
+  hours <- floor(time)
+  minutes <- (time - floor(time)) * 60
+  minutes <- floor(minutes)
+  minutes <- str_pad(minutes, 2, side="left", pad="0")
+  formatted <- paste(hours,minutes,sep=":")
+  return(formatted)
+}
+
+```
+
 
 ## Plots
 
 # Total Journey Time By Start Time
 
 ```{r totalbystart}
-ggplot(journeys, aes(StartTime, Total)) + geom_point() + geom_smooth(method="lm") + scale_y_continuous(expand = c(0,0))
+ggplot(journeys, aes(StartTime, Total)) + geom_point() + geom_smooth(method="lm") + scale_y_continuous(expand = c(0,0)) + scale_x_continuous(labels=format_time) + ylab("Total Duration (minutes)") + xlab("Start Time")
 ```
 
 
 # Total Journey Time By Start Time For Each Day Of The Week
 
 ```{r totalbystartdow}
-ggplot(journeys, aes(StartTime, Total)) + geom_point() + geom_smooth(method="lm") + facet_grid(.~dow) + scale_y_continuous(expand = c(0,0))
+ggplot(journeys, aes(StartTime, Total)) + geom_point() + geom_smooth(method="lm") + facet_grid(.~dow) + scale_y_continuous(expand = c(0,0)) + scale_x_continuous(labels=format_time) + ylab("Total Duration (minutes)") + xlab("Start Time")
 ```
 
 # Express Way To EndTtime Versus Start Time
 
 ```{r expresswaybystart}
-ggplot(journeys, aes(StartTime, ExpressWayToEnd)) + geom_point() + geom_smooth(method="lm") + scale_y_continuous(expand = c(0,0))
+ggplot(journeys, aes(StartTime, ExpressWayToEnd)) + geom_point() + geom_smooth(method="lm") + scale_y_continuous(expand = c(0,0)) + scale_x_continuous(labels=format_time) + ylab("Duration (minutes)") + xlab("Start Time")
 ```
