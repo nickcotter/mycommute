@@ -18,11 +18,41 @@ require(lubridate)
 require(data.table)
 require(ggplot2)
 require(stringr)
+require(DiagrammeR)
 ```
 
 ## TODO: summary
 
 ## TODO: data structure and point map
+
+
+```r
+mermaid("graph LR; A-->B; A-->C; C-->E; B-->D; C-->D; D-->F; E-->F")
+```
+
+<!--html_preserve--><div id="htmlwidget-fba29d035f1a907476de" style="width:672px;height:480px;" class="DiagrammeR html-widget"></div>
+<script type="application/json" data-for="htmlwidget-fba29d035f1a907476de">{"x":{"diagram":"graph LR; A-->B; A-->C; C-->E; B-->D; C-->D; D-->F; E-->F"},"evals":[],"jsHooks":[]}</script><!--/html_preserve-->
+
+
+
+```r
+DiagrammeR::grViz("
+  digraph commutemap {
+graph [layout = circo]
+  rankdir='LR'
+  {
+    node [shape=box]
+    S [label='Start']
+    EX [label='Express Way']
+    E [label='End']
+  }
+    S -> EX -> E
+  }
+  ")
+```
+
+<!--html_preserve--><div id="htmlwidget-ad836c675660934d2bba" style="width:672px;height:960px;" class="grViz html-widget"></div>
+<script type="application/json" data-for="htmlwidget-ad836c675660934d2bba">{"x":{"diagram":"\n  digraph commutemap {\ngraph [layout = circo]\n  rankdir=\"LR\"\n  {\n    node [shape=box]\n    S [label=\"Start\"]\n    EX [label=\"Express Way\"]\n    E [label=\"End\"]\n  }\n    S -> EX -> E\n  }\n  ","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script><!--/html_preserve-->
 
 
 ## Load The Data
@@ -33,6 +63,7 @@ unzip("data/export-150817.zip", exdir="unpacked")
 unzip("data/export-171017.zip", exdir="unpacked")
 unzip("data/export-300118.zip", exdir="unpacked")
 unzip("data/export-130718.zip", exdir="unpacked")
+unzip("data/export-211218.zip", exdir="unpacked")
 ```
 
 ## Preprocess The Data
@@ -138,6 +169,16 @@ format_time <- function(time) {
 
 ## Plots
 
+# Total Journey Time Variation
+
+```r
+ggplot(journeys, aes(x = as.numeric(Total))) + geom_histogram(binwidth=1, fill="darkblue") + ylab("# Journeys") + xlab("Total Journey Time (minutes)")
+```
+
+![](my-commute_files/figure-html/totalvariation-1.png)<!-- -->
+
+
+
 # Total Journey Time By Start Time
 
 
@@ -157,7 +198,7 @@ ggplot(journeys, aes(StartTime, Total)) + geom_point() + geom_smooth(method="lm"
 
 ![](my-commute_files/figure-html/totalbystartdow-1.png)<!-- -->
 
-# Express Way To EndTtime Versus Start Time
+# Time Taken from Express Way to Work by Start Time
 
 
 ```r
